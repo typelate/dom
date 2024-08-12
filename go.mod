@@ -1,8 +1,6 @@
 module github.com/crhntr/dom
 
-go 1.22
-
-toolchain go1.22.4
+go 1.23rc2
 
 require (
 	github.com/andybalholm/cascadia v1.3.2

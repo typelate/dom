@@ -127,6 +127,7 @@ func (nt NodeType) String() string {
 type NodeList[T Node] interface {
 	Length() int
 	Item(int) T
+	Iterator[T]
 }
 
 type Text interface {
@@ -232,6 +233,9 @@ type ElementCollection interface {
 
 	// NamedItem returns the first element with ID or name from the collection.
 	NamedItem(name string) Element
+
+	// Iterator is a go1.23 iterator over the elements in the collection
+	Iterator[Element]
 }
 
 type DocumentFragment interface {
@@ -255,4 +259,8 @@ type Comment interface {
 
 	Data() string
 	SetData() string
+}
+
+type Iterator[T Node] interface {
+	Each(func(int, T) bool)
 }

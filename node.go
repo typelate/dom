@@ -132,6 +132,18 @@ func (node *firstChildIterator) Item(index int) spec.Node {
 	return nil
 }
 
+func (node *firstChildIterator) Each(yield func(int, spec.Node) bool) {
+	c := (*html.Node)(node)
+	offset := 0
+	for c != nil {
+		if !yield(offset, NewNode(c)) {
+			return
+		}
+		offset++
+		c = c.NextSibling
+	}
+}
+
 func isConnected(node *html.Node) bool {
 	p := node.Parent
 	for p != nil {
@@ -452,6 +464,14 @@ func (n nodeListHTMLElements) Length() int { return len(n) }
 func (n nodeListHTMLElements) Item(i int) spec.Element {
 	return &Element{
 		node: n[i],
+	}
+}
+
+func (n nodeListHTMLElements) Each(yield func(int, spec.Element) bool) {
+	for i := 0; i < n.Length(); i++ {
+		if !yield(i, n.Item(i)) {
+			return
+		}
 	}
 }
 

@@ -280,3 +280,91 @@ func TestElement_QuerySelector(t *testing.T) {
 		}
 	})
 }
+
+func Test_elementList_Forwards(t *testing.T) {
+	//
+	documentAST, err := html.Parse(strings.NewReader(
+		/* language=html */
+		`<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="utf-8">
+    <title>Test Data</title>
+</head>
+<body>
+    <a href="/1">1</a>
+	<a href="/2">2</a>
+	<div>
+		<a href="/3">3</a>
+	</div>
+	<a href="/4">4</a>
+</body>
+</html>`))
+	require.NoError(t, err)
+
+	var document spec.Document = &Document{node: documentAST}
+
+	callCount := 0
+	for index, element := range document.GetElementsByTagName(`a`).Each {
+		assert.Equal(t, "/"+strconv.Itoa(index+1), element.GetAttribute("href"))
+		callCount++
+	}
+	assert.Equal(t, 4, callCount)
+}
+
+func Test_querySelector_Forwards(t *testing.T) {
+	documentAST, err := html.Parse(strings.NewReader(
+		/* language=html */
+		`<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="utf-8">
+    <title>Test Data</title>
+</head>
+<body>
+    <div data-index="0">1</div>
+	<div data-index="1" >2</div>
+	<span>
+		<div data-index="2" >2</div>
+	</span>
+	<div data-index="3" >3</div>
+</body>
+</html>`))
+	require.NoError(t, err)
+
+	var document spec.Document = &Document{node: documentAST}
+
+	callCount := 0
+	for index, element := range document.QuerySelectorAll(`[data-index]`).Each {
+		assert.Equal(t, strconv.Itoa(index), element.GetAttribute("data-index"))
+		callCount++
+	}
+	assert.Equal(t, 4, callCount)
+}
+
+func Test_siblingList_Forwards(t *testing.T) {
+	documentAST, err := html.Parse(strings.NewReader(
+		/* language=html */
+		`<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="utf-8">
+    <title>Test Data</title>
+</head>
+<body>
+    <span data-index="0">1</span>
+	<div data-index="1" >2</div>
+	<a data-index="2" href="/three">3</a>
+</body>
+</html>`))
+	require.NoError(t, err)
+
+	var document spec.Document = &Document{node: documentAST}
+
+	callCount := 0
+	for index, element := range document.QuerySelector(`body`).Children().Each {
+		assert.Equal(t, strconv.Itoa(index), element.GetAttribute("data-index"))
+		callCount++
+	}
+	assert.Equal(t, 3, callCount)
+}

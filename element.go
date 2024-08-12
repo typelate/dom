@@ -210,6 +210,19 @@ func (list siblingElements) NamedItem(name string) spec.Element {
 	return nil
 }
 
+func (list siblingElements) Each(yield func(int, spec.Element) bool) {
+	i := 0
+	for c := list.firstChild; c != nil; c = c.NextSibling {
+		if c.Type != html.ElementNode {
+			continue
+		}
+		if !yield(i, &Element{node: c}) {
+			return
+		}
+		i++
+	}
+}
+
 type elementList []*html.Node
 
 func (list elementList) Length() int { return len(list) }
@@ -228,4 +241,12 @@ func (list elementList) NamedItem(name string) spec.Element {
 		}
 	}
 	return nil
+}
+
+func (list elementList) Each(yield func(int, spec.Element) bool) {
+	for i := 0; i < list.Length(); i++ {
+		if !yield(i, list.Item(i)) {
+			return
+		}
+	}
 }
