@@ -1,14 +1,13 @@
 module github.com/crhntr/dom
 
 go 1.23
-
 toolchain go1.23.3
 
 require (
 	github.com/andybalholm/cascadia v1.3.3
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.11.2
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/net v0.35.0
+	golang.org/x/net v0.36.0
 )
 
 require (
