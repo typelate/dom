@@ -65,7 +65,7 @@ func TestAPI(t *testing.T) {
 				})
 			},
 			When: func(t *testing.T, _ When) *http.Request {
-				return httptest.NewRequest(http.MethodGet, "/article/1", nil)
+				return httptest.NewRequest(http.MethodGet, blog.TemplateRoutePaths{}.Article(1), nil)
 			},
 			Then: func(t *testing.T, response *http.Response, then Then) {
 				document := domtest.ParseResponseDocument(t, response)
@@ -86,7 +86,7 @@ func TestAPI(t *testing.T) {
 				})
 			},
 			When: func(t *testing.T, when When) *http.Request {
-				return httptest.NewRequest(http.MethodGet, "/article/1", nil)
+				return httptest.NewRequest(http.MethodGet, blog.TemplateRoutePaths{}.Article(1), nil)
 			},
 			Then: func(t *testing.T, response *http.Response, then Then) {
 				document := domtest.ParseResponseDocument(t, response)
@@ -103,7 +103,7 @@ func TestAPI(t *testing.T) {
 				})
 			},
 			When: func(t *testing.T, _ When) *http.Request {
-				req := httptest.NewRequest(http.MethodGet, "/article/1", nil)
+				req := httptest.NewRequest(http.MethodGet, blog.TemplateRoutePaths{}.Article(1), nil)
 				req.Header.Set("HX-Request", "true")
 				return req
 			},

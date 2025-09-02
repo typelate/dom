@@ -275,20 +275,6 @@ func (fake *TestingT) SkipNowCalls(stub func()) {
 func (fake *TestingT) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.errorMutex.RLock()
-	defer fake.errorMutex.RUnlock()
-	fake.errorfMutex.RLock()
-	defer fake.errorfMutex.RUnlock()
-	fake.failNowMutex.RLock()
-	defer fake.failNowMutex.RUnlock()
-	fake.failedMutex.RLock()
-	defer fake.failedMutex.RUnlock()
-	fake.helperMutex.RLock()
-	defer fake.helperMutex.RUnlock()
-	fake.logMutex.RLock()
-	defer fake.logMutex.RUnlock()
-	fake.skipNowMutex.RLock()
-	defer fake.skipNowMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
