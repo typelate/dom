@@ -1,4 +1,4 @@
-package blog_test
+package hypertext_test
 
 import (
 	"fmt"
@@ -7,12 +7,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"golang.org/x/net/html/atom"
 
 	"github.com/typelate/dom/domtest"
-	"github.com/typelate/dom/domtest/example/blog"
-	"github.com/typelate/dom/domtest/example/blog/internal/fake"
+	"github.com/typelate/dom/examples/blog/internal/fake"
+	"github.com/typelate/dom/examples/blog/internal/hypertext"
 )
 
 func TestAPI(t *testing.T) {
@@ -44,7 +43,7 @@ func TestAPI(t *testing.T) {
 		req := tc.When(t, When{})
 
 		mux := http.NewServeMux()
-		blog.TemplateRoutes(mux, app)
+		hypertext.TemplateRoutes(mux, app)
 
 		rec := httptest.NewRecorder()
 		mux.ServeHTTP(rec, req)
@@ -58,60 +57,61 @@ func TestAPI(t *testing.T) {
 		{
 			Name: "viewing the home page",
 			Given: func(t *testing.T, given Given) {
-				given.app.ArticleReturns(blog.Article{
+				given.app.ArticleReturns(hypertext.Article{
 					Title:   "Greetings!",
 					Content: "Hello, friends!",
 					Error:   nil,
 				})
 			},
 			When: func(t *testing.T, _ When) *http.Request {
-				return httptest.NewRequest(http.MethodGet, blog.TemplateRoutePaths{}.Article(1), nil)
+				return httptest.NewRequest(http.MethodGet, hypertext.TemplateRoutePaths{}.Article(1), nil)
 			},
 			Then: func(t *testing.T, response *http.Response, then Then) {
 				document := domtest.ParseResponseDocument(t, response)
-				require.Equal(t, 1, then.app.ArticleArgsForCall(0))
+				assert.Equal(t, 1, then.app.ArticleArgsForCall(0))
 				if heading := document.QuerySelector("h1"); assert.NotNil(t, heading) {
-					require.Equal(t, "Greetings!", heading.TextContent())
+					assert.Equal(t, "Greetings!", heading.TextContent())
 				}
 				if content := document.QuerySelector("p"); assert.NotNil(t, content) {
-					require.Equal(t, "Hello, friends!", content.TextContent())
+					assert.Equal(t, "Hello, friends!", content.TextContent())
 				}
 			},
 		},
 		{
 			Name: "the page has an error",
 			Given: func(t *testing.T, given Given) { // GivenPtr removes some of the boilerplate in the block
-				given.app.ArticleReturns(blog.Article{
+				given.app.ArticleReturns(hypertext.Article{
 					Error: fmt.Errorf("lemon"),
 				})
 			},
 			When: func(t *testing.T, when When) *http.Request {
-				return httptest.NewRequest(http.MethodGet, blog.TemplateRoutePaths{}.Article(1), nil)
+				return httptest.NewRequest(http.MethodGet, hypertext.TemplateRoutePaths{}.Article(1), nil)
 			},
 			Then: func(t *testing.T, response *http.Response, then Then) {
 				document := domtest.ParseResponseDocument(t, response)
 				if msg := document.QuerySelector("#error-message"); assert.NotNil(t, msg) {
-					require.Equal(t, "lemon", msg.TextContent())
+					assert.Equal(t, "lemon", msg.TextContent())
 				}
 			},
 		},
 		{
 			Name: "the page has an error and is requested by HTMX",
 			Given: func(t *testing.T, given Given) {
-				given.app.ArticleReturns(blog.Article{
+				given.app.ArticleReturns(hypertext.Article{
 					Error: fmt.Errorf("lemon"),
 				})
 			},
 			When: func(t *testing.T, _ When) *http.Request {
-				req := httptest.NewRequest(http.MethodGet, blog.TemplateRoutePaths{}.Article(1), nil)
+				req := httptest.NewRequest(http.MethodGet, hypertext.TemplateRoutePaths{}.Article(1), nil)
 				req.Header.Set("HX-Request", "true")
 				return req
 			},
 			Then: func(t *testing.T, response *http.Response, _ Then) {
 				fragment := domtest.ParseResponseDocumentFragment(t, response, atom.Div)
-				el := fragment.FirstElementChild()
-				require.Equal(t, "lemon", el.TextContent())
-				require.Equal(t, "*errors.errorString", el.GetAttribute("data-type"))
+				if el := fragment.FirstElementChild(); assert.NotNil(t, el) {
+					assert.Equal(t, "lemon", el.TextContent())
+					assert.Equal(t, "*errors.errorString", el.GetAttribute("data-type"))
+				}
 			},
 		},
 		{
@@ -120,7 +120,7 @@ func TestAPI(t *testing.T) {
 				return httptest.NewRequest(http.MethodGet, "/article/banana", nil)
 			},
 			Then: func(t *testing.T, res *http.Response, _ Then) {
-				require.Equal(t, http.StatusBadRequest, res.StatusCode)
+				assert.Equal(t, http.StatusBadRequest, res.StatusCode)
 			},
 		},
 	} {

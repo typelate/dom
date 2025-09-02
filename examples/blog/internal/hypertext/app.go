@@ -1,4 +1,4 @@
-package blog
+package hypertext
 
 type App struct{}
 

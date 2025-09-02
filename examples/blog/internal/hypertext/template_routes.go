@@ -22,7 +22,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-package blog
+package hypertext
 
 import (
 	"bytes"
@@ -87,8 +87,8 @@ func TemplateRoutes(mux *http.ServeMux, receiver RoutesReceiver) {
 }
 
 type TemplateData[T any] struct {
-	receiver    RoutesReceiver
-	response    http.ResponseWriter
+	receiver RoutesReceiver
+	response http.ResponseWriter
 	request     *http.Request
 	result      T
 	statusCode  int
