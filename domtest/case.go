@@ -10,10 +10,15 @@ import (
 	"github.com/typelate/dom/spec"
 )
 
+// Deprecated: (see comment on Case)
 type GivenFunc[T TestingT, F any] func(t T) F
 
+// Deprecated: (see comment on Case)
 type ThenFunc[T TestingT, F any] func(t T, res *http.Response, f F)
 
+// Deprecated: I have found using a Given, When, Then pattern to be more maintainable
+// when a Case is specified as an inline type in a Test function.
+// For example: https://github.com/crhntr/muxt/blob/main/example/hypertext/template_routes_test.go
 type Case[T TestingT, F any] struct {
 	Name  string
 	Given GivenFunc[T, F]
@@ -21,6 +26,7 @@ type Case[T TestingT, F any] struct {
 	Then  ThenFunc[T, F]
 }
 
+// Deprecated: (see comment on Case)
 func (tc Case[TestingT, F]) Run(handler func(f F) http.Handler) func(t TestingT) {
 	return func(t TestingT) {
 		t.Helper()
@@ -45,6 +51,7 @@ func (tc Case[TestingT, F]) Run(handler func(f F) http.Handler) func(t TestingT)
 	}
 }
 
+// Deprecated: (see comment on Case)
 func GivenPtr[T TestingT, F *Dereferenced, Dereferenced any](given func(t T, f F)) GivenFunc[T, F] {
 	return func(t T) F {
 		f := new(Dereferenced)
@@ -53,6 +60,7 @@ func GivenPtr[T TestingT, F *Dereferenced, Dereferenced any](given func(t T, f F
 	}
 }
 
+// Deprecated: (see comment on Case)
 type DocumentTestFunc[T TestingT, F any] func(t T, document spec.Document, f F)
 
 func Document[T TestingT, F any](then DocumentTestFunc[T, F]) ThenFunc[T, F] {
@@ -63,8 +71,10 @@ func Document[T TestingT, F any](then DocumentTestFunc[T, F]) ThenFunc[T, F] {
 	}
 }
 
+// Deprecated: (see comment on Case)
 type FragmentTestFunc[T TestingT, F any] func(t T, fragment spec.DocumentFragment, f F)
 
+// Deprecated: (see comment on Case)
 func Fragment[T TestingT, F any](parent atom.Atom, then FragmentTestFunc[T, F]) ThenFunc[T, F] {
 	return func(t T, res *http.Response, f F) {
 		t.Helper()
@@ -73,8 +83,10 @@ func Fragment[T TestingT, F any](parent atom.Atom, then FragmentTestFunc[T, F]) 
 	}
 }
 
+// Deprecated: (see comment on Case)
 type QuerySelectorFunc[T TestingT, F any] func(t T, element spec.Element, f F)
 
+// Deprecated: (see comment on Case)
 func QuerySelector[T TestingT, F any](query string, then QuerySelectorFunc[T, F]) ThenFunc[T, F] {
 	return func(t T, res *http.Response, f F) {
 		t.Helper()
