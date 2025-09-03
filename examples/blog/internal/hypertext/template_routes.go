@@ -87,8 +87,8 @@ func TemplateRoutes(mux *http.ServeMux, receiver RoutesReceiver) {
 }
 
 type TemplateData[T any] struct {
-	receiver RoutesReceiver
-	response http.ResponseWriter
+	receiver    RoutesReceiver
+	response    http.ResponseWriter
 	request     *http.Request
 	result      T
 	statusCode  int

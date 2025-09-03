@@ -4,26 +4,26 @@ package fake
 import (
 	"sync"
 
-	"github.com/typelate/dom/domtest/example/blog"
+	"github.com/typelate/dom/examples/blog/internal/hypertext"
 )
 
 type App struct {
-	ArticleStub        func(int) blog.Article
+	ArticleStub        func(int) hypertext.Article
 	articleMutex       sync.RWMutex
 	articleArgsForCall []struct {
 		arg1 int
 	}
 	articleReturns struct {
-		result1 blog.Article
+		result1 hypertext.Article
 	}
 	articleReturnsOnCall map[int]struct {
-		result1 blog.Article
+		result1 hypertext.Article
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *App) Article(arg1 int) blog.Article {
+func (fake *App) Article(arg1 int) hypertext.Article {
 	fake.articleMutex.Lock()
 	ret, specificReturn := fake.articleReturnsOnCall[len(fake.articleArgsForCall)]
 	fake.articleArgsForCall = append(fake.articleArgsForCall, struct {
@@ -48,7 +48,7 @@ func (fake *App) ArticleCallCount() int {
 	return len(fake.articleArgsForCall)
 }
 
-func (fake *App) ArticleCalls(stub func(int) blog.Article) {
+func (fake *App) ArticleCalls(stub func(int) hypertext.Article) {
 	fake.articleMutex.Lock()
 	defer fake.articleMutex.Unlock()
 	fake.ArticleStub = stub
@@ -61,26 +61,26 @@ func (fake *App) ArticleArgsForCall(i int) int {
 	return argsForCall.arg1
 }
 
-func (fake *App) ArticleReturns(result1 blog.Article) {
+func (fake *App) ArticleReturns(result1 hypertext.Article) {
 	fake.articleMutex.Lock()
 	defer fake.articleMutex.Unlock()
 	fake.ArticleStub = nil
 	fake.articleReturns = struct {
-		result1 blog.Article
+		result1 hypertext.Article
 	}{result1}
 }
 
-func (fake *App) ArticleReturnsOnCall(i int, result1 blog.Article) {
+func (fake *App) ArticleReturnsOnCall(i int, result1 hypertext.Article) {
 	fake.articleMutex.Lock()
 	defer fake.articleMutex.Unlock()
 	fake.ArticleStub = nil
 	if fake.articleReturnsOnCall == nil {
 		fake.articleReturnsOnCall = make(map[int]struct {
-			result1 blog.Article
+			result1 hypertext.Article
 		})
 	}
 	fake.articleReturnsOnCall[i] = struct {
-		result1 blog.Article
+		result1 hypertext.Article
 	}{result1}
 }
 
@@ -108,4 +108,4 @@ func (fake *App) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ blog.RoutesReceiver = new(App)
+var _ hypertext.RoutesReceiver = new(App)

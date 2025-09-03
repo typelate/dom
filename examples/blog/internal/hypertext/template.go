@@ -8,7 +8,7 @@ import (
 //go:generate muxt generate --receiver-type=App
 
 //go:generate counterfeiter -generate
-//counterfeiter:generate -o internal/fake/app.go --fake-name App . RoutesReceiver
+//counterfeiter:generate -o ../fake/app.go --fake-name App . RoutesReceiver
 
 //go:embed *.gohtml
 var source embed.FS
