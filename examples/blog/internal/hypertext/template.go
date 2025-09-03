@@ -5,7 +5,7 @@ import (
 	"text/template"
 )
 
-//go:generate muxt generate --receiver-type=App
+//go:generate muxt generate --receiver-type=App --template-data-type=templateData
 
 //go:generate counterfeiter -generate
 //counterfeiter:generate -o ../fake/app.go --fake-name App . RoutesReceiver

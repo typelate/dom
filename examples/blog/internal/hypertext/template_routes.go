@@ -43,7 +43,7 @@ func TemplateRoutes(mux *http.ServeMux, receiver RoutesReceiver) {
 		idParsed, err := strconv.Atoi(request.PathValue("id"))
 		if err != nil {
 			var zv Article
-			rd := newTemplateData(receiver, response, request, zv, false, err)
+			rd := newtemplateData(receiver, response, request, zv, false, err)
 			buf := bytes.NewBuffer(nil)
 			if err := templates.ExecuteTemplate(buf, "GET /article/{id} Article(id)", rd); err != nil {
 				slog.ErrorContext(request.Context(), "failed to render page", slog.String("path", request.URL.Path), slog.String("pattern", request.Pattern), slog.String("error", err.Error()))
@@ -65,7 +65,7 @@ func TemplateRoutes(mux *http.ServeMux, receiver RoutesReceiver) {
 		}
 		id := idParsed
 		result := receiver.Article(id)
-		td := newTemplateData(receiver, response, request, result, true, nil)
+		td := newtemplateData(receiver, response, request, result, true, nil)
 		buf := bytes.NewBuffer(nil)
 		if err := templates.ExecuteTemplate(buf, "GET /article/{id} Article(id)", td); err != nil {
 			slog.ErrorContext(request.Context(), "failed to render page", slog.String("path", request.URL.Path), slog.String("pattern", request.Pattern), slog.String("error", err.Error()))
@@ -86,7 +86,7 @@ func TemplateRoutes(mux *http.ServeMux, receiver RoutesReceiver) {
 	})
 }
 
-type TemplateData[T any] struct {
+type templateData[T any] struct {
 	receiver    RoutesReceiver
 	response    http.ResponseWriter
 	request     *http.Request
@@ -97,50 +97,50 @@ type TemplateData[T any] struct {
 	redirectURL string
 }
 
-func newTemplateData[T any](receiver RoutesReceiver, response http.ResponseWriter, request *http.Request, result T, okay bool, err error) *TemplateData[T] {
-	return &TemplateData[T]{receiver: receiver, response: response, request: request, result: result, okay: okay, err: err, redirectURL: ""}
+func newtemplateData[T any](receiver RoutesReceiver, response http.ResponseWriter, request *http.Request, result T, okay bool, err error) *templateData[T] {
+	return &templateData[T]{receiver: receiver, response: response, request: request, result: result, okay: okay, err: err, redirectURL: ""}
 }
 
-func (data *TemplateData[T]) MuxtVersion() string {
+func (data *templateData[T]) MuxtVersion() string {
 	const muxtVersion = "v0.17.0-dev.4"
 	return muxtVersion
 }
 
-func (data *TemplateData[T]) Path() TemplateRoutePaths {
+func (data *templateData[T]) Path() TemplateRoutePaths {
 	return TemplateRoutePaths{}
 }
 
-func (data *TemplateData[T]) Result() T {
+func (data *templateData[T]) Result() T {
 	return data.result
 }
 
-func (data *TemplateData[T]) Request() *http.Request {
+func (data *templateData[T]) Request() *http.Request {
 	return data.request
 }
 
-func (data *TemplateData[T]) StatusCode(statusCode int) *TemplateData[T] {
+func (data *templateData[T]) StatusCode(statusCode int) *templateData[T] {
 	data.statusCode = statusCode
 	return data
 }
 
-func (data *TemplateData[T]) Header(key, value string) *TemplateData[T] {
+func (data *templateData[T]) Header(key, value string) *templateData[T] {
 	data.response.Header().Set(key, value)
 	return data
 }
 
-func (data *TemplateData[T]) Ok() bool {
+func (data *templateData[T]) Ok() bool {
 	return data.okay
 }
 
-func (data *TemplateData[T]) Err() error {
+func (data *templateData[T]) Err() error {
 	return data.err
 }
 
-func (data *TemplateData[T]) Receiver() RoutesReceiver {
+func (data *templateData[T]) Receiver() RoutesReceiver {
 	return data.receiver
 }
 
-func (data *TemplateData[T]) Redirect(url string, code int) (*TemplateData[T], error) {
+func (data *templateData[T]) Redirect(url string, code int) (*templateData[T], error) {
 	if code < 300 || code >= 400 {
 		return data, fmt.Errorf("invalid status code %d for redirect", code)
 	}
