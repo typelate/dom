@@ -58,6 +58,17 @@ func ParseReaderDocument(t TestingT, r io.Reader) spec.Document {
 	return dom.NewNode(node).(spec.Document)
 }
 
+func ParseResponseDocumentFragment(t TestingT, res *http.Response, parent atom.Atom) spec.DocumentFragment {
+	t.Helper()
+	defer closeAndCheckError(t, res.Body)
+	return ParseReaderDocumentFragment(t, res.Body, parent)
+}
+
+func ParseStringDocumentFragment(t TestingT, in string, parent atom.Atom) spec.DocumentFragment {
+	t.Helper()
+	return ParseReaderDocumentFragment(t, strings.NewReader(in), parent)
+}
+
 func ParseReaderDocumentFragment(t TestingT, r io.Reader, parent atom.Atom) spec.DocumentFragment {
 	t.Helper()
 
@@ -76,12 +87,6 @@ func ParseReaderDocumentFragment(t TestingT, r io.Reader, parent atom.Atom) spec
 		return nil
 	}
 	return dom.NewDocumentFragment(nodes)
-}
-
-func ParseResponseDocumentFragment(t TestingT, res *http.Response, parent atom.Atom) spec.DocumentFragment {
-	t.Helper()
-	defer closeAndCheckError(t, res.Body)
-	return ParseReaderDocumentFragment(t, res.Body, parent)
 }
 
 func closeAndCheckError(t TestingT, c io.Closer) {
