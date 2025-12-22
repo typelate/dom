@@ -10,11 +10,11 @@ import (
 	"testing/iotest"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/html/atom"
 
 	"github.com/typelate/dom/domtest"
-	"github.com/typelate/dom/internal/fakes"
 	"github.com/typelate/dom/spec"
 )
 
@@ -28,7 +28,7 @@ var (
 
 func TestParseResponseDocument(t *testing.T) {
 	t.Run("when a valid html document is passed", func(t *testing.T) {
-		testingT := new(fakes.TestingT)
+		testingT := newTestingT()
 		res := &http.Response{
 			Body: io.NopCloser(strings.NewReader(indexHTML)),
 		}
@@ -44,7 +44,7 @@ func TestParseResponseDocument(t *testing.T) {
 	})
 
 	t.Run("when a fragment is returned", func(t *testing.T) {
-		testingT := new(fakes.TestingT)
+		testingT := newTestingT()
 		res := &http.Response{
 			Body: io.NopCloser(strings.NewReader(fragmentHTML)),
 		}
@@ -62,7 +62,7 @@ func TestParseResponseDocument(t *testing.T) {
 	})
 
 	t.Run("when read fails and close is ok", func(t *testing.T) {
-		testingT := new(fakes.TestingT)
+		testingT := newTestingT()
 		fakeBody := &errClose{
 			Reader:   iotest.ErrReader(errors.New("banana")),
 			closeErr: nil,
@@ -81,7 +81,7 @@ func TestParseResponseDocument(t *testing.T) {
 	})
 
 	t.Run("when read is ok but close fails", func(t *testing.T) {
-		testingT := new(fakes.TestingT)
+		testingT := newTestingT()
 		fakeBody := &errClose{
 			Reader:   strings.NewReader(indexHTML),
 			closeErr: errors.New("banana"),
@@ -100,7 +100,7 @@ func TestParseResponseDocument(t *testing.T) {
 	})
 
 	t.Run("when both read and close fail", func(t *testing.T) {
-		testingT := new(fakes.TestingT)
+		testingT := newTestingT()
 		fakeBody := &errClose{
 			Reader:   iotest.ErrReader(errors.New("banana")),
 			closeErr: errors.New("lemon"),
@@ -119,7 +119,7 @@ func TestParseResponseDocument(t *testing.T) {
 	})
 
 	t.Run("when both read and close fail", func(t *testing.T) {
-		testingT := new(fakes.TestingT)
+		testingT := newTestingT()
 		fakeBody := &errClose{
 			Reader:   iotest.ErrReader(errors.New("banana")),
 			closeErr: errors.New("lemon"),
@@ -140,7 +140,7 @@ func TestParseResponseDocument(t *testing.T) {
 
 func TestParseResponseDocumentFragment(t *testing.T) {
 	t.Run("when a valid html document is passed", func(t *testing.T) {
-		testingT := new(fakes.TestingT)
+		testingT := newTestingT()
 		res := &http.Response{
 			Body: io.NopCloser(strings.NewReader(fragmentHTML)),
 		}
@@ -156,7 +156,7 @@ func TestParseResponseDocumentFragment(t *testing.T) {
 }
 
 func TestParseReaderDocument(t *testing.T) {
-	testingT := new(fakes.TestingT)
+	testingT := newTestingT()
 	r := iotest.ErrReader(errors.New("banana"))
 
 	document := domtest.ParseReaderDocument(testingT, r)
@@ -167,7 +167,7 @@ func TestParseReaderDocument(t *testing.T) {
 }
 
 func TestParseStringDocument(t *testing.T) {
-	testingT := new(fakes.TestingT)
+	testingT := newTestingT()
 
 	document := domtest.ParseStringDocument(testingT, "<p>Hello, world!</p>")
 
@@ -190,3 +190,90 @@ func (e *errClose) Close() error {
 	e.closeCallCount++
 	return e.closeErr
 }
+
+type TestingT struct {
+	mock.Mock
+}
+
+func newTestingT() *TestingT {
+	t := &TestingT{}
+	t.On("Helper").Maybe()
+	t.On("Error", mock.Anything).Maybe()
+	t.On("Log", mock.Anything).Maybe()
+	t.On("Errorf", mock.Anything, mock.Anything).Maybe()
+	t.On("FailNow").Maybe()
+	t.On("Failed").Return(false).Maybe()
+	t.On("SkipNow").Maybe()
+	return t
+}
+
+func (m *TestingT) Helper() {
+	m.Called()
+}
+
+func (m *TestingT) Error(args ...any) {
+	m.Called(args)
+}
+
+func (m *TestingT) Log(args ...any) {
+	m.Called(args)
+}
+
+func (m *TestingT) Errorf(format string, args ...interface{}) {
+	m.Called(format, args)
+}
+
+func (m *TestingT) FailNow() {
+	m.Called()
+}
+
+func (m *TestingT) Failed() bool {
+	args := m.Called()
+	return args.Bool(0)
+}
+
+func (m *TestingT) SkipNow() {
+	m.Called()
+}
+
+// Helper methods for counting calls (compatible with existing tests)
+
+func (m *TestingT) ErrorCallCount() int {
+	return m.countCalls("Error")
+}
+
+func (m *TestingT) LogCallCount() int {
+	return m.countCalls("Log")
+}
+
+func (m *TestingT) HelperCallCount() int {
+	return m.countCalls("Helper")
+}
+
+func (m *TestingT) ErrorfCallCount() int {
+	return m.countCalls("Errorf")
+}
+
+func (m *TestingT) FailNowCallCount() int {
+	return m.countCalls("FailNow")
+}
+
+func (m *TestingT) FailedCallCount() int {
+	return m.countCalls("Failed")
+}
+
+func (m *TestingT) SkipNowCallCount() int {
+	return m.countCalls("SkipNow")
+}
+
+func (m *TestingT) countCalls(methodName string) int {
+	count := 0
+	for _, call := range m.Calls {
+		if call.Method == methodName {
+			count++
+		}
+	}
+	return count
+}
+
+var _ domtest.TestingT = new(TestingT)

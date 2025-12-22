@@ -13,9 +13,6 @@ import (
 	"github.com/typelate/dom/spec"
 )
 
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
-//counterfeiter:generate --fake-name TestingT -o ../internal/fakes/t.go . TestingT
-
 type TestingT interface {
 	Helper()
 	Error(...any)
