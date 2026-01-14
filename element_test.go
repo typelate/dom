@@ -334,3 +334,15 @@ func TestElement_CompareDocumentPosition(t *testing.T) {
 		assert.Equal(t, spec.DocumentPositionDisconnected|spec.DocumentPositionImplementationSpecific, pos)
 	})
 }
+
+func TestElement_SetAttribute(t *testing.T) {
+	t.Run("set attribute only adds element if required", func(t *testing.T) {
+		n := &html.Node{Type: html.ElementNode, Data: "div"}
+		div := &Element{node: n}
+
+		div.SetAttribute("data-key", "0")
+		div.SetAttribute("data-key", "1")
+
+		require.Len(t, n.Attr, 1)
+	})
+}

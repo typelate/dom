@@ -101,6 +101,7 @@ func (e *Element) SetAttribute(name, value string) {
 	for index, att := range e.node.Attr {
 		if att.Key == name {
 			e.node.Attr[index].Val = value
+			return
 		}
 	}
 	e.node.Attr = append(e.node.Attr, html.Attribute{
