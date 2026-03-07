@@ -1,3 +1,4 @@
+// Package domtest provides test helpers that parse HTML into spec types.
 package domtest
 
 import (

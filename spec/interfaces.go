@@ -1,3 +1,7 @@
+// Package spec defines interfaces for a subset of the WHATWG DOM specification
+// (https://dom.spec.whatwg.org). The dom package provides a pure-Go
+// implementation backed by golang.org/x/net/html, and the browser package
+// provides a WASM implementation backed by the browser DOM.
 package spec
 
 import "iter"
