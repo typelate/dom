@@ -2,30 +2,14 @@ package spec
 
 import "iter"
 
-// Node is based on a subset of the methods and types in
-// https://dom.spec.whatwg.org/#interface-node as of 2021-12-10
+// Node is a subset of https://dom.spec.whatwg.org/#interface-node.
 //
-// MinimalNode contains a subset of methods used by root nodes like Document.
+// Child-management methods (HasChildNodes, ChildNodes, FirstChild, LastChild,
+// Contains, InsertBefore, AppendChild, ReplaceChild, RemoveChild) live on
+// ParentNode instead, keeping leaf types like Text slim.
 //
-// Some methods (listed below) were removed from Node and added to ParentNode because they
-// only make sense in the context of a non-leaf node. By removing them from node it reduces
-// API surface area of the (leaf) Text node.
-// - HasChildNodes
-// - ChildNodes
-// - FirstChild
-// - LastChild
-// - Contains
-// - InsertBefore
-// - AppendChild
-// - ReplaceChild
-// - RemoveChild
-//
-// The following methods were removed because they do not apply across all relevant node types.
-// - NodeValue (only applies to Text and Attr. The former already has Data and the latter is ignored)
-// - IsEqualNode (has different comparisons for different node types and this makes implementation difficult)
-//
-// The following methods have been added in addition to those documented in the whatwg document.
-// - Length
+// NodeValue and IsEqualNode are omitted: NodeValue only applies to Text (which
+// has Data) and Attr; IsEqualNode varies per node type.
 type Node interface {
 	NodeType() NodeType
 	CloneNode(deep bool) Node
@@ -195,10 +179,10 @@ type ElementQueries interface {
 	QuerySelectorIterator
 }
 
-// Element is based on
+// Element is based on https://dom.spec.whatwg.org/#interface-element.
 //
-// InnerText methods are ignored due to rendering complexity; however, implementations may add them
-// based on InnerTextSetter.
+// InnerText is omitted due to rendering complexity; implementations may add it
+// via InnerTextSetter.
 type Element interface {
 	Node
 	ChildNode
