@@ -28,12 +28,8 @@ type ChildNode interface {
 	PreviousSibling() ChildNode
 	NextSibling() ChildNode
 
-	// Length should be based on https://dom.spec.whatwg.org/#concept-node-length
+	// Length is based on https://dom.spec.whatwg.org/#concept-node-length
 	Length() int
-
-	// LookupPrefix(namespace string)
-	// LookupNamespaceURI(prefix string)
-	// IsDefaultNamespace(namespace string) bool
 }
 
 // Normalizer may be implemented by a Node and should follow https://dom.spec.whatwg.org/#dom-node-normalize
@@ -43,8 +39,7 @@ type Normalizer interface {
 
 type DocumentPosition int
 
-// DocumentPosition is based on const values in
-// https://dom.spec.whatwg.org/#interface-node (reviewed on 2021-12-10)
+// DocumentPosition values from https://dom.spec.whatwg.org/#interface-node.
 const (
 	DocumentPositionDisconnected DocumentPosition = 1 << iota
 	DocumentPositionPreceding
@@ -54,8 +49,7 @@ const (
 	DocumentPositionImplementationSpecific
 )
 
-// NodeType is based on const values in
-// https://dom.spec.whatwg.org/#interface-node (reviewed on 2021-12-10)
+// NodeType values from https://dom.spec.whatwg.org/#interface-node.
 type NodeType int
 
 const (
@@ -118,9 +112,6 @@ type Text interface {
 
 	Data() string
 	SetData(string)
-
-	// Split(n int) Text // CONSIDER: maybe implement this
-	// WholeText() string // CONSIDER: maybe implement this
 }
 
 type Document interface {
@@ -130,9 +121,6 @@ type Document interface {
 
 	CreateElement(localName string) Element
 	CreateElementIs(localName, is string) Element
-
-	// CreateDocumentFragment() node
-
 	CreateTextNode(text string) Text
 
 	Head() Element
