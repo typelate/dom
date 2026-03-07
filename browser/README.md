@@ -1,9 +1,7 @@
-# Browser
+# browser
 
-github.com/typelate/dom/browser is an experimental package.
+**Experimental.** Implements the `spec` interfaces using the browser DOM via `syscall/js`.
 
-A prior attempt at this was here: https://github.com/crhntr/window
+## Testing
 
-## Test Setup
-
-https://github.com/agnivade/wasmbrowsertest
+Browser tests use [agnivade/wasmbrowsertest](https://github.com/agnivade/wasmbrowsertest).
