@@ -56,8 +56,6 @@ func (d *Document) CompareDocumentPosition(other spec.Node) spec.DocumentPositio
 // https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent
 func (d *Document) TextContent() string { return "" }
 
-// Document
-
 func (*Document) CreateElement(localName string) spec.Element {
 	localName = strings.ToLower(localName)
 	return &Element{

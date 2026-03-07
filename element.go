@@ -22,8 +22,6 @@ func (e *Element) QuerySelectorSequence(query string) iter.Seq[spec.Element] {
 	}
 }
 
-// NewNode
-
 func (e *Element) NodeType() spec.NodeType         { return nodeType(e.node.Type) }
 func (e *Element) IsConnected() bool               { return isConnected(e.node) }
 func (e *Element) OwnerDocument() spec.Document    { return ownerDocument(e.node) }
@@ -47,8 +45,6 @@ func (e *Element) Length() int {
 func (e *Element) CompareDocumentPosition(other spec.Node) spec.DocumentPosition {
 	return compareDocumentPosition(e.node, other)
 }
-
-// ParentNode
 
 func (e *Element) Children() spec.ElementCollection   { return children(e.node) }
 func (e *Element) FirstElementChild() spec.Element    { return firstElementChild(e.node) }
@@ -88,8 +84,6 @@ func (e *Element) ReplaceChild(node, child spec.ChildNode) spec.ChildNode {
 	return replaceChild(e.node, node, child)
 }
 func (e *Element) RemoveChild(node spec.ChildNode) spec.ChildNode { return removeChild(e.node, node) }
-
-// Element
 
 func (e *Element) TagName() string                 { return strings.ToUpper(e.node.Data) }
 func (e *Element) ID() string                      { return getAttribute(e.node, "id") }
