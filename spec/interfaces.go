@@ -22,6 +22,7 @@ type Node interface {
 	CompareDocumentPosition(other Node) DocumentPosition
 }
 
+// ChildNode extends Node with tree-position methods for nodes that can be children.
 type ChildNode interface {
 	Node
 
@@ -41,6 +42,7 @@ type Normalizer interface {
 	Normalize()
 }
 
+// DocumentPosition is a bitmask returned by Node.CompareDocumentPosition.
 type DocumentPosition int
 
 // DocumentPosition values from https://dom.spec.whatwg.org/#interface-node.
@@ -106,11 +108,13 @@ func (nt NodeType) String() string {
 	}
 }
 
+// NodeList is an ordered collection of nodes.
 type NodeList[T Node] interface {
 	Length() int
 	Item(int) T
 }
 
+// Text represents a text node. See https://dom.spec.whatwg.org/#interface-text.
 type Text interface {
 	ChildNode
 
@@ -118,6 +122,7 @@ type Text interface {
 	SetData(string)
 }
 
+// Document represents a document node. See https://dom.spec.whatwg.org/#interface-document.
 type Document interface {
 	Node
 
@@ -131,8 +136,8 @@ type Document interface {
 	Body() Element
 }
 
-// ParentNode is based on https://dom.spec.whatwg.org/#interface-parentnode. It also includes some fields and
-// methods from Node that only make sense for non-leaf nodes such as Element, DocumentFragment, and Document.
+// ParentNode combines https://dom.spec.whatwg.org/#interface-parentnode with the
+// child-management methods from Node that only apply to non-leaf nodes.
 type ParentNode interface {
 	Node
 
@@ -147,8 +152,6 @@ type ParentNode interface {
 
 	ElementQueries
 
-	// the following methods are from node; however, they only make sense for parent nodes
-
 	HasChildNodes() bool
 	ChildNodes() NodeList[Node]
 	FirstChild() ChildNode
@@ -159,6 +162,7 @@ type ParentNode interface {
 	RemoveChild(node ChildNode) ChildNode
 }
 
+// ElementQueries groups methods for finding elements within a subtree.
 type ElementQueries interface {
 	Contains(other Node) bool
 
@@ -199,11 +203,13 @@ type Element interface {
 	OuterHTML() string
 }
 
+// InnerTextSetter is an optional interface for implementations that support InnerText.
 type InnerTextSetter interface {
 	SetInnerText(s string)
 	InnerText() string
 }
 
+// ElementCollection is a live collection of elements. See https://dom.spec.whatwg.org/#interface-htmlcollection.
 type ElementCollection interface {
 	// Length returns the number of elements in the collection.
 	Length() int
@@ -215,6 +221,7 @@ type ElementCollection interface {
 	NamedItem(name string) Element
 }
 
+// DocumentFragment represents a minimal document. See https://dom.spec.whatwg.org/#interface-documentfragment.
 type DocumentFragment interface {
 	Node
 
@@ -232,6 +239,7 @@ type DocumentFragment interface {
 	QuerySelectorIterator
 }
 
+// Comment represents a comment node. See https://dom.spec.whatwg.org/#interface-comment.
 type Comment interface {
 	Node
 
@@ -239,6 +247,7 @@ type Comment interface {
 	SetData(string)
 }
 
+// QuerySelectorIterator adds iterator-based query support.
 type QuerySelectorIterator interface {
 	QuerySelectorSequence(query string) iter.Seq[Element]
 }
