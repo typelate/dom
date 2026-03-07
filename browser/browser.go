@@ -1,5 +1,7 @@
 //go:build js
 
+// Package browser implements the spec interfaces using the browser DOM via
+// syscall/js. It is experimental.
 package browser
 
 import (

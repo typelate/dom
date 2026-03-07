@@ -1,3 +1,5 @@
+// Package dom implements the spec interfaces using golang.org/x/net/html
+// nodes. CSS selectors are supported via andybalholm/cascadia.
 package dom
 
 import (
