@@ -260,7 +260,7 @@ type Comment interface {
 	Node
 
 	Data() string
-	SetData() string
+	SetData(string)
 }
 
 type QuerySelectorIterator interface {
