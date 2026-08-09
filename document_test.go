@@ -363,7 +363,7 @@ func TestDocument_CreateElement(t *testing.T) {
 	exp := parsedDocument.FirstChild.NextSibling.LastChild.FirstChild
 	exp.Parent = nil
 
-	var document *Document
+	document := &Document{node: parsedDocument}
 	got := document.CreateElement("SPAN").(*Element).node
 
 	assert.Equal(t, exp, got)
@@ -376,7 +376,7 @@ func TestDocument_CreateElementIs(t *testing.T) {
 	exp := parsedDocument.FirstChild.NextSibling.LastChild.FirstChild
 	exp.Parent = nil
 
-	var document *Document
+	document := &Document{node: parsedDocument}
 	got := document.CreateElementIs("div", "fruit").(*Element).node
 
 	assert.Equal(t, exp, got)
@@ -389,7 +389,7 @@ func TestDocument_CreateTextNode(t *testing.T) {
 	exp := parsedDocument.FirstChild.NextSibling.FirstChild.FirstChild.FirstChild
 	exp.Parent = nil
 
-	var document *Document
+	document := &Document{node: parsedDocument}
 	got := document.CreateTextNode("peach").(*Text).node
 
 	assert.Equal(t, exp, got)

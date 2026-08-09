@@ -1,5 +1,12 @@
-// Package dom implements the spec interfaces using golang.org/x/net/html
-// nodes. CSS selectors are supported via andybalholm/cascadia.
+// Package dom implements the spec interfaces on golang.org/x/net/html nodes,
+// with CSS selectors from andybalholm/cascadia.
+//
+// Two behaviors are worth knowing before you start:
+//
+//   - An invalid CSS selector panics. Queries compile with
+//     cascadia.MustCompile, so selectors are expected to be constants.
+//   - NewNode handles element, text, and document nodes. Any other node type,
+//     such as a comment or doctype, panics.
 package dom
 
 import (
@@ -43,6 +50,8 @@ func nodeType(nodeType html.NodeType) spec.NodeType {
 	}
 }
 
+// NewNode wraps an html.Node, returning nil if node is nil. It panics for node
+// types other than element, text, and document.
 func NewNode(node *html.Node) spec.Node {
 	if node == nil {
 		return nil
@@ -80,17 +89,43 @@ func htmlNodeToDomElement(node *html.Node) spec.Element {
 	return &Element{node: node}
 }
 
+// domNodeToHTMLNode returns the html.Node backing node, or nil if node is nil.
+// It panics for spec.Node implementations that did not come from this package.
 func domNodeToHTMLNode(node spec.Node) *html.Node {
 	switch ot := node.(type) {
+	case nil:
+		return nil
 	case *Element:
+		if ot == nil {
+			return nil
+		}
 		return ot.node
 	case *Text:
+		if ot == nil {
+			return nil
+		}
 		return ot.node
 	case *Document:
+		if ot == nil {
+			return nil
+		}
 		return ot.node
 	default:
 		panic("not implemented")
 	}
+}
+
+// utf16Length counts s in UTF-16 code units, the unit
+// https://dom.spec.whatwg.org/#concept-node-length uses for character data.
+func utf16Length(s string) int {
+	length := 0
+	for _, r := range s {
+		length++
+		if r > 0xFFFF {
+			length++
+		}
+	}
+	return length
 }
 
 func walkNodes(start *html.Node, fn func(node *html.Node) (done bool)) bool {
@@ -145,12 +180,23 @@ func isConnected(node *html.Node) bool {
 	return false
 }
 
-func ownerDocument(node *html.Node) spec.Document {
-	n := ownerDocumentNode(node)
+// ownerDocument resolves the node document by walking up the tree, falling back
+// to owner for nodes that are not attached to a document. Nodes made by
+// Document.CreateElement and friends carry owner so they report the document
+// that created them.
+func ownerDocument(node, owner *html.Node) spec.Document {
+	n := ownerDocumentNodeOf(node, owner)
 	if n == nil {
 		return nil
 	}
 	return &Document{node: n}
+}
+
+func ownerDocumentNodeOf(node, owner *html.Node) *html.Node {
+	if n := ownerDocumentNode(node); n != nil {
+		return n
+	}
+	return owner
 }
 
 func ownerDocumentNode(node *html.Node) *html.Node {
@@ -263,7 +309,7 @@ func replaceChild(parent *html.Node, node, child spec.ChildNode) spec.ChildNode 
 	n := domNodeToHTMLNode(node)
 	c := domNodeToHTMLNode(child)
 	if c.Parent != parent {
-		panic("browser: ReplaceChild called for an attached child node")
+		panic("dom: ReplaceChild called with a node that is not a child of this parent")
 	}
 	if c.PrevSibling != nil {
 		c.PrevSibling.NextSibling = n
@@ -377,18 +423,18 @@ func appendNodes(parent *html.Node, nodes ...spec.Node) {
 
 func replaceChildren(parent *html.Node, nodes []spec.Node) {
 	clearChildren(parent)
-	for _, node := range nodes {
-		n := domNodeToHTMLNode(node)
-		parent.AppendChild(n)
-	}
+	appendNodes(parent, nodes...)
 }
 
+// clearChildren detaches every child of node, leaving each former child a
+// well-formed root: no parent and no siblings.
 func clearChildren(node *html.Node) {
-	if fc := node.FirstChild; fc != nil {
-		fc.Parent = nil
-	}
-	if lc := node.LastChild; lc != nil {
-		lc.Parent = nil
+	for c := node.FirstChild; c != nil; {
+		next := c.NextSibling
+		c.Parent = nil
+		c.PrevSibling = nil
+		c.NextSibling = nil
+		c = next
 	}
 	node.FirstChild = nil
 	node.LastChild = nil
@@ -398,7 +444,7 @@ func getElementsByTagName(node *html.Node, name string) elementList {
 	name = strings.ToUpper(name)
 	var list elementList
 	walkNodes(node, func(n *html.Node) bool {
-		if strings.ToUpper(n.Data) == name {
+		if n.Type == html.ElementNode && strings.ToUpper(n.Data) == name {
 			list = append(list, n)
 		}
 		return false
@@ -407,9 +453,15 @@ func getElementsByTagName(node *html.Node, name string) elementList {
 }
 
 func getElementsByClassName(node *html.Node, name string) elementList {
+	classes := strings.Fields(name)
+	if len(classes) == 0 {
+		// https://dom.spec.whatwg.org/#concept-getelementsbyclassname
+		// an empty set of classes matches nothing
+		return nil
+	}
 	var list elementList
 	walkNodes(node, func(n *html.Node) bool {
-		if hasClasses(getAttribute(n, "class"), name) {
+		if n.Type == html.ElementNode && hasClasses(getAttribute(n, "class"), classes) {
 			list = append(list, n)
 		}
 		return false
@@ -417,16 +469,14 @@ func getElementsByClassName(node *html.Node, name string) elementList {
 	return list
 }
 
-func hasClasses(elementClassesStr, classesStr string) bool {
-	elementClasses := strings.Fields(elementClassesStr)
-	classes := strings.Fields(classesStr)
-
-	set := make(map[string]struct{}, len(classesStr))
+// hasClasses reports whether elementClassesStr contains every class in classes.
+func hasClasses(elementClassesStr string, classes []string) bool {
+	set := make(map[string]struct{}, len(classes))
 	for _, c := range classes {
 		set[c] = struct{}{}
 	}
 
-	for _, c := range elementClasses {
+	for c := range strings.FieldsSeq(elementClassesStr) {
 		delete(set, c)
 	}
 
@@ -523,14 +573,17 @@ func querySelectorSequence(n *html.Node, m cascadia.Matcher, yield func(spec.Ele
 func compareDocumentPosition(this *html.Node, other spec.Node) spec.DocumentPosition {
 	node1 := domNodeToHTMLNode(other)
 	node2 := this
-	if node1 == node2 {
+	if node1 != nil && node1 == node2 {
 		return 0
+	}
+	if node1 == nil || node2 == nil {
+		return spec.DocumentPositionDisconnected | spec.DocumentPositionImplementationSpecific
 	}
 	// attribute nodes not handled
 	owner := ownerDocumentNode(node2)
 	sameRoot := ownerDocumentNode(node1) == owner
 	bothConnected := isConnected(node1) && isConnected(node2)
-	if node1 == nil || node2 == nil || !bothConnected || !sameRoot {
+	if !bothConnected || !sameRoot {
 		// random consistent value for preceding or following is not handled
 		return spec.DocumentPositionDisconnected | spec.DocumentPositionImplementationSpecific
 	}

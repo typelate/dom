@@ -56,9 +56,10 @@ func (d *Document) CompareDocumentPosition(other spec.Node) spec.DocumentPositio
 // https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent
 func (d *Document) TextContent() string { return "" }
 
-func (*Document) CreateElement(localName string) spec.Element {
+func (d *Document) CreateElement(localName string) spec.Element {
 	localName = strings.ToLower(localName)
 	return &Element{
+		owner: d.node,
 		node: &html.Node{
 			DataAtom: atom.Lookup([]byte(localName)),
 			Type:     html.ElementNode,
@@ -67,9 +68,10 @@ func (*Document) CreateElement(localName string) spec.Element {
 	}
 }
 
-func (*Document) CreateElementIs(localName, is string) spec.Element {
+func (d *Document) CreateElementIs(localName, is string) spec.Element {
 	localName = strings.ToLower(localName)
 	return &Element{
+		owner: d.node,
 		node: &html.Node{
 			DataAtom: atom.Lookup([]byte(localName)),
 			Type:     html.ElementNode,
@@ -79,8 +81,9 @@ func (*Document) CreateElementIs(localName, is string) spec.Element {
 	}
 }
 
-func (*Document) CreateTextNode(text string) spec.Text {
+func (d *Document) CreateTextNode(text string) spec.Text {
 	return &Text{
+		owner: d.node,
 		node: &html.Node{
 			Type: html.TextNode,
 			Data: text,

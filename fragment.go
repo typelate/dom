@@ -23,11 +23,14 @@ func (d *DocumentFragment) String() string { return outerHTML(d.nodes...) }
 
 func (d *DocumentFragment) NodeType() spec.NodeType { return spec.NodeTypeDocumentFragment }
 
+// CloneNode returns a new fragment. A deep clone copies each child; a shallow
+// clone shares them. Note that https://dom.spec.whatwg.org/#dom-node-clonenode
+// says a shallow clone has no children at all.
 func (d *DocumentFragment) CloneNode(deep bool) spec.Node {
 	if !deep {
-		return &DocumentFragment{nodes: d.nodes}
+		return &DocumentFragment{nodes: slices.Clone(d.nodes)}
 	}
-	df := &DocumentFragment{nodes: make([]*html.Node, len(d.nodes))}
+	df := &DocumentFragment{nodes: make([]*html.Node, 0, len(d.nodes))}
 	for _, e := range d.nodes {
 		df.nodes = append(df.nodes, cloneNode(e, deep))
 	}

@@ -12,7 +12,8 @@ import (
 )
 
 type Element struct {
-	node *html.Node
+	owner *html.Node
+	node  *html.Node
 }
 
 func (e *Element) QuerySelectorSequence(query string) iter.Seq[spec.Element] {
@@ -24,13 +25,15 @@ func (e *Element) QuerySelectorSequence(query string) iter.Seq[spec.Element] {
 
 func (e *Element) NodeType() spec.NodeType         { return nodeType(e.node.Type) }
 func (e *Element) IsConnected() bool               { return isConnected(e.node) }
-func (e *Element) OwnerDocument() spec.Document    { return ownerDocument(e.node) }
+func (e *Element) OwnerDocument() spec.Document    { return ownerDocument(e.node, e.owner) }
 func (e *Element) ParentNode() spec.Node           { return parentNode(e.node) }
 func (e *Element) ParentElement() spec.Element     { return parentElement(e.node) }
 func (e *Element) PreviousSibling() spec.ChildNode { return previousSibling(e.node) }
 func (e *Element) NextSibling() spec.ChildNode     { return nextSibling(e.node) }
 func (e *Element) TextContent() string             { return textContent(e.node) }
-func (e *Element) CloneNode(deep bool) spec.Node   { return NewNode(cloneNode(e.node, deep)) }
+func (e *Element) CloneNode(deep bool) spec.Node {
+	return &Element{node: cloneNode(e.node, deep), owner: ownerDocumentNodeOf(e.node, e.owner)}
+}
 func (e *Element) IsSameNode(other spec.Node) bool { return isSameNode(e.node, other) }
 func (e *Element) Length() int {
 	c := e.node.FirstChild
@@ -168,7 +171,7 @@ func (e *Element) SetOuterHTML(s string) {
 		return
 	}
 	if e.node.Parent == nil {
-		panic("browser: SetOuterHTML called on an unattached node")
+		panic("dom: SetOuterHTML called on an unattached node")
 	}
 	for _, node := range nodes {
 		e.node.Parent.InsertBefore(node, e.node)
