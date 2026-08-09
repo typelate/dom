@@ -1,15 +1,21 @@
 # dom [![Go Reference](https://pkg.go.dev/badge/github.com/typelate/dom.svg)](https://pkg.go.dev/github.com/typelate/dom)
 
-Pure Go implementation of the [WHATWG DOM](https://dom.spec.whatwg.org) backed by [golang.org/x/net/html](https://pkg.go.dev/golang.org/x/net/html). CSS selectors are provided by [andybalholm/cascadia](https://github.com/andybalholm/cascadia).
+A pure Go implementation of a subset of the [WHATWG DOM](https://dom.spec.whatwg.org), backed by [golang.org/x/net/html](https://pkg.go.dev/golang.org/x/net/html), with CSS selectors from [andybalholm/cascadia](https://github.com/andybalholm/cascadia).
+
+Its main use is asserting on the HTML your handlers return, without a browser.
+
+```
+go get github.com/typelate/dom
+```
 
 ## Packages
 
 | Package | Description |
 |---------|-------------|
-| `dom` | Implements `Document`, `Element`, `Text`, and `DocumentFragment` using `html.Node`. |
-| `spec` | Interfaces matching the WHATWG DOM spec. Shared by `dom` and `browser`. |
-| `domtest` | Test helpers that parse HTML strings or `http.Response` bodies into `spec` types. |
-| `browser` | **Experimental.** Implements `spec` interfaces via `syscall/js` for WASM. |
+| `spec` | Interfaces for a subset of the WHATWG DOM. Implemented by `dom` and `browser`. |
+| `dom` | `Document`, `Element`, `Text`, and `DocumentFragment` over `html.Node`. |
+| `domtest` | Parses HTML strings, `io.Reader`s, and `http.Response` bodies into `spec` types. |
+| `browser` | **Experimental.** The same interfaces over the real browser DOM via `syscall/js`, for WASM. |
 
 ## Example
 
@@ -28,3 +34,16 @@ func TestGreeting(t *testing.T) {
 	}
 }
 ```
+
+To assert on a fragment rather than a whole page, parse it in the context of the
+element it will land in — the parent decides how the markup is interpreted:
+
+```go
+rows := domtest.ParseResponseDocumentFragment(t, res.Result(), atom.Tbody)
+```
+
+## Notes
+
+- An invalid CSS selector panics, because queries compile with `cascadia.MustCompile`.
+- `domtest` helpers report failures with `t.Error` and return `nil`, which does not stop the test. Check the result before using it.
+- Collections are not uniformly live: `Children` reflects later mutations, while `GetElementsByTagName` and `GetElementsByClassName` return a snapshot.

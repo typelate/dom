@@ -33,7 +33,9 @@ type ChildNode interface {
 	PreviousSibling() ChildNode
 	NextSibling() ChildNode
 
-	// Length is based on https://dom.spec.whatwg.org/#concept-node-length
+	// Length is based on https://dom.spec.whatwg.org/#concept-node-length:
+	// the number of UTF-16 code units for character data such as Text, and
+	// the number of children for every other node.
 	Length() int
 }
 
@@ -163,6 +165,9 @@ type ParentNode interface {
 }
 
 // ElementQueries groups methods for finding elements within a subtree.
+//
+// QuerySelector and QuerySelectorAll take a CSS selector. The dom package
+// compiles it with cascadia.MustCompile, so an invalid selector panics.
 type ElementQueries interface {
 	Contains(other Node) bool
 
@@ -209,7 +214,13 @@ type InnerTextSetter interface {
 	InnerText() string
 }
 
-// ElementCollection is a live collection of elements. See https://dom.spec.whatwg.org/#interface-htmlcollection.
+// ElementCollection is an ordered collection of elements. See
+// https://dom.spec.whatwg.org/#interface-htmlcollection.
+//
+// The spec collection is live. Whether an implementation is live varies: the
+// dom package's Children is, because it walks the tree on every call, while its
+// GetElementsByTagName and GetElementsByClassName results are snapshots taken
+// when the method returns. Do not rely on either behavior across mutations.
 type ElementCollection interface {
 	// Length returns the number of elements in the collection.
 	Length() int
