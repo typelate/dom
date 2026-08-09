@@ -138,7 +138,7 @@ func (e *Element) CompareDocumentPosition(other spec.Node) spec.DocumentPosition
 	return compareDocumentPosition(e.value, other)
 }
 
-func (e *Element) Length() int { return e.Length() }
+func (e *Element) Length() int { return nodeLength(e.value) }
 
 func (e *Element) IsConnected() bool               { return isConnected(e.value) }
 func (e *Element) OwnerDocument() spec.Document    { return ownerDocument(e.value) }
@@ -152,9 +152,9 @@ func (e *Element) FirstElementChild() spec.Element  { return firstElementChild(e
 func (e *Element) LastElementChild() spec.Element   { return lastElementChild(e.value) }
 func (e *Element) ChildElementCount() int           { return childElementCount(e.value) }
 
-func (e *Element) Prepend(nodes ...spec.Node) { appendNodes(e.value, nodes) }
+func (e *Element) Prepend(nodes ...spec.Node) { prependNodes(e.value, nodes) }
 
-func (e *Element) Append(nodes ...spec.Node) { prependNodes(e.value, nodes) }
+func (e *Element) Append(nodes ...spec.Node) { appendNodes(e.value, nodes) }
 
 func (e *Element) ReplaceChildren(nodes ...spec.Node) { replaceChildrenNodes(e.value, nodes) }
 
@@ -406,9 +406,7 @@ func createElement(receiver js.Value, tagName string) spec.Element {
 }
 
 func createElementIs(receiver js.Value, tagName, is string) spec.Element {
-	return newElement(receiver.Call("createElement", tagName, struct {
-		Is string `json:"is"`
-	}{Is: is}))
+	return newElement(receiver.Call("createElement", tagName, map[string]any{"is": is}))
 }
 
 func createTextNode(receiver js.Value, text string) spec.Text {
@@ -426,7 +424,7 @@ func ownerDocument(receiver js.Value) spec.Document {
 func parentNode(receiver js.Value) spec.Node       { return NewNode(receiver.Get("parentNode")) }
 func parentElement(receiver js.Value) spec.Element { return newElement(receiver.Get("parentElement")) }
 func children(receiver js.Value) htmlCollection {
-	return htmlCollection{value: receiver.Call("children")}
+	return htmlCollection{value: receiver.Get("children")}
 }
 
 func compareDocumentPosition(receiver js.Value, other spec.Node) spec.DocumentPosition {
@@ -449,6 +447,10 @@ func lastElementChild(receiver js.Value) spec.Element {
 	return newElement(receiver.Get("lastElementChild"))
 }
 func childElementCount(receiver js.Value) int { return receiver.Get("childElementCount").Int() }
+
+// nodeLength is https://dom.spec.whatwg.org/#concept-node-length for nodes that
+// are not character data: the number of children.
+func nodeLength(receiver js.Value) int { return receiver.Get("childNodes").Length() }
 
 func appendNodes(receiver js.Value, in []spec.Node) {
 	receiver.Call("append", valueArray(in)...)
