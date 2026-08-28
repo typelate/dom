@@ -1,6 +1,6 @@
 module github.com/typelate/dom
 
-go 1.25.0
+go 1.26
 
 require (
 	github.com/andybalholm/cascadia v1.3.4
