@@ -1,0 +1,20 @@
+{{define "page"}}<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Greeting</title>
+</head>
+<body>
+{{template "greeting" .}}
+<form method="POST" action="/">
+    <label for="name">Name</label>
+    <input id="name" name="name" value="{{.Name}}">
+    <button type="submit">Greet</button>
+</form>
+</body>
+</html>
+{{end}}
+
+{{define "greeting" -}}
+    <h1 class="{{.Class}}">Hello, {{.Greeted}}!</h1>
+{{- end}}
