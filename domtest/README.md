@@ -32,24 +32,20 @@ The selector `form input[name="name"]` stops matching the moment either happens.
 Marker classes work the same way.
 The example puts `default-value` or `custom-value` on the heading depending on which branch produced it, so a test selects the state directly and survives a copy edit.
 
-Attribute selectors accept hyphenated names, so `hx-*`, `fx-*`, and `data-*` are reachable like any other attribute. Passing a control's target attribute back into `QuerySelector` checks in one line that what it points at exists.
+Attribute selectors accept hyphenated names, so `hx-*`, `fx-*`, and `data-*` are reachable like any other attribute.
+Passing a control's target attribute back into `QuerySelector` checks in one line that what it points at exists.
 
 Whole-page golden comparisons fail on every unrelated edit and say nothing about which affordance broke. Keep assertions narrow and let the selector carry the structural claim.
 
 ## Reusable assertions
 
-A check worth making twice belongs in a helper.
-Declare the interface it needs in your own test package, since `spec.Node` carries only the node basics and cannot query.
-`spec.Document`, `spec.DocumentFragment`, and `spec.Element` all have the query methods, so one helper covers a page, a fragment, or a single subtree.
+A check worth making twice belongs in a helper, and `spec` already has the interface to write it against.
+Take a `spec.ElementQueries` and the same helper runs over a whole document or any single element.
 
 ```go
-type queryer interface {
-	QuerySelectorSequence(query string) iter.Seq[spec.Element]
-}
-
 // assertLinksResolve fails for every anchor whose href is missing, empty, or
 // not something net/url will parse.
-func assertLinksResolve(t *testing.T, root queryer) {
+func assertLinksResolve(t *testing.T, root spec.ElementQueries) {
 	t.Helper()
 	for a := range root.QuerySelectorSequence("a") {
 		href := a.GetAttribute("href")
@@ -63,8 +59,12 @@ func assertLinksResolve(t *testing.T, root queryer) {
 ```
 
 Pass a document to sweep the page, or an element to narrow it, as in `assertLinksResolve(t, doc.QuerySelector("nav"))`.
+A `spec.DocumentFragment` declares the query methods without the `Contains` and `GetElementsBy` group, so it does not satisfy `ElementQueries`.
+Reach into a fragment first and hand the helper an element.
 
-`url.Parse` rejects less than you would hope. It turns down bad escapes like `%zz`, spaces in a host, and control characters, but accepts the empty string and `javascript:alert(1)`, which is why the emptiness check earns its keep. A helper is where project rules go, such as requiring a leading slash on internal links.
+`url.Parse` rejects less than you would hope.
+It turns down bad escapes like `%zz`, spaces in a host, and control characters, but accepts the empty string and `javascript:alert(1)`, which is why the emptiness check earns its keep.
+A helper is where project rules go, such as requiring a leading slash on internal links.
 
 ## Fragments and the parent element
 
