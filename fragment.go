@@ -119,6 +119,31 @@ func (d *DocumentFragment) ReplaceChildren(nodes ...spec.Node) {
 	d.nodes = list
 }
 
+func (d *DocumentFragment) Contains(other spec.Node) bool {
+	for _, n := range d.nodes {
+		if contains(n, other) {
+			return true
+		}
+	}
+	return false
+}
+
+func (d *DocumentFragment) GetElementsByTagName(name string) spec.ElementCollection {
+	var list elementList
+	for _, n := range d.nodes {
+		list = append(list, getElementsByTagName(n, name)...)
+	}
+	return slices.Clip(list)
+}
+
+func (d *DocumentFragment) GetElementsByClassName(name string) spec.ElementCollection {
+	var list elementList
+	for _, n := range d.nodes {
+		list = append(list, getElementsByClassName(n, name)...)
+	}
+	return slices.Clip(list)
+}
+
 func (d *DocumentFragment) QuerySelector(query string) spec.Element {
 	for _, n := range d.nodes {
 		el := querySelector(n, query, true)

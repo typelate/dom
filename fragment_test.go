@@ -407,3 +407,60 @@ func TestDocumentFragment_QuerySelectorEach(t *testing.T) {
 		assert.Equal(t, stopOnCall, callCount)
 	}
 }
+
+// DocumentFragment must satisfy the same query interface as Document and
+// Element, so one test helper can accept any of them.
+var _ spec.ElementQueries = (spec.DocumentFragment)(nil)
+
+func TestDocumentFragment_Contains(t *testing.T) {
+	fragment := parseDocumentFragment(t, `<p class="a">one</p><div><em>two</em></div>`)
+
+	t.Run("a top level element", func(t *testing.T) {
+		p := fragment.QuerySelector("p")
+		require.NotNil(t, p)
+		assert.True(t, fragment.Contains(p))
+	})
+
+	t.Run("a nested element", func(t *testing.T) {
+		em := fragment.QuerySelector("em")
+		require.NotNil(t, em)
+		assert.True(t, fragment.Contains(em))
+	})
+
+	t.Run("an element from somewhere else", func(t *testing.T) {
+		other := parseDocumentFragment(t, `<span>elsewhere</span>`).QuerySelector("span")
+		require.NotNil(t, other)
+		assert.False(t, fragment.Contains(other))
+	})
+
+	t.Run("nil", func(t *testing.T) {
+		assert.False(t, fragment.Contains(nil))
+	})
+}
+
+func TestDocumentFragment_GetElementsByTagName(t *testing.T) {
+	fragment := parseDocumentFragment(t, `<p>one</p><div><p>two</p></div>`)
+
+	// The top level nodes are part of the fragment, so a match on one of them
+	// counts just as a nested match does.
+	list := fragment.GetElementsByTagName("p")
+	require.Equal(t, 2, list.Length())
+	assert.Equal(t, "one", list.Item(0).TextContent())
+	assert.Equal(t, "two", list.Item(1).TextContent())
+
+	assert.Equal(t, 0, fragment.GetElementsByTagName("table").Length())
+}
+
+func TestDocumentFragment_GetElementsByClassName(t *testing.T) {
+	fragment := parseDocumentFragment(t, `<p class="a b">one</p><div><p class="a">two</p></div>`)
+
+	both := fragment.GetElementsByClassName("a")
+	require.Equal(t, 2, both.Length())
+	assert.Equal(t, "one", both.Item(0).TextContent())
+
+	only := fragment.GetElementsByClassName("b")
+	require.Equal(t, 1, only.Length())
+	assert.Equal(t, "one", only.Item(0).TextContent())
+
+	assert.Equal(t, 0, fragment.GetElementsByClassName("missing").Length())
+}

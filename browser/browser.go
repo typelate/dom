@@ -85,6 +85,15 @@ func (d *Document) CreateTextNode(text string) spec.Text {
 	return createTextNode(d.value, text)
 }
 
+// These fail to compile if a spec interface gains a method this package has
+// not implemented.
+var (
+	_ spec.Document         = (*Document)(nil)
+	_ spec.DocumentFragment = (*DocumentFragment)(nil)
+	_ spec.Element          = (*Element)(nil)
+	_ spec.Text             = (*Text)(nil)
+)
+
 type DocumentFragment struct {
 	value js.Value
 }
@@ -106,6 +115,16 @@ func (d *DocumentFragment) ChildElementCount() int           { return childEleme
 func (d *DocumentFragment) Append(nodes ...spec.Node)          { appendNodes(d.value, nodes) }
 func (d *DocumentFragment) Prepend(nodes ...spec.Node)         { prependNodes(d.value, nodes) }
 func (d *DocumentFragment) ReplaceChildren(nodes ...spec.Node) { replaceChildrenNodes(d.value, nodes) }
+
+func (d *DocumentFragment) Contains(other spec.Node) bool { return contains(d.value, other) }
+
+func (d *DocumentFragment) GetElementsByTagName(name string) spec.ElementCollection {
+	return getElementsByTagName(d.value, name)
+}
+
+func (d *DocumentFragment) GetElementsByClassName(name string) spec.ElementCollection {
+	return getElementsByClassName(d.value, name)
+}
 
 func (d *DocumentFragment) QuerySelector(query string) spec.Element {
 	return querySelector(d.value, query)

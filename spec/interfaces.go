@@ -245,9 +245,7 @@ type DocumentFragment interface {
 	Prepend(nodes ...Node)
 	ReplaceChildren(nodes ...Node)
 
-	QuerySelector(query string) Element
-	QuerySelectorAll(query string) NodeList[Element]
-	QuerySelectorIterator
+	ElementQueries
 }
 
 // Comment represents a comment node. See https://dom.spec.whatwg.org/#interface-comment.
