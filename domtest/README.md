@@ -40,7 +40,7 @@ Whole-page golden comparisons fail on every unrelated edit and say nothing about
 ## Reusable assertions
 
 A check worth making twice belongs in a helper, and `spec` already has the interface to write it against.
-Take a `spec.ElementQueries` and the same helper runs over a whole document or any single element.
+Take a `spec.ElementQueries` and the same helper runs over a document, a fragment, or a single element.
 
 ```go
 // assertLinksResolve fails for every anchor whose href is missing, empty, or
@@ -58,9 +58,7 @@ func assertLinksResolve(t *testing.T, root spec.ElementQueries) {
 }
 ```
 
-Pass a document to sweep the page, or an element to narrow it, as in `assertLinksResolve(t, doc.QuerySelector("nav"))`.
-A `spec.DocumentFragment` declares the query methods without the `Contains` and `GetElementsBy` group, so it does not satisfy `ElementQueries`.
-Reach into a fragment first and hand the helper an element.
+Pass a document to sweep a page, a fragment to sweep a partial response, or an element to narrow the sweep further, as in `assertLinksResolve(t, doc.QuerySelector("nav"))`.
 
 `url.Parse` rejects less than you would hope.
 It turns down bad escapes like `%zz`, spaces in a host, and control characters, but accepts the empty string and `javascript:alert(1)`, which is why the emptiness check earns its keep.
@@ -98,16 +96,3 @@ Anything you then dereference needs `require`, because a nil `Element` panics on
 Anything only compared can be `assert`, so a broken page reports its heading, its class, and its fields together instead of one at a time.
 
 The helpers follow the same convention, reporting with `t.Error` and returning nil, which pairs with `require.NotNil`.
-
-## TestingT
-
-The helpers accept a `TestingT` rather than `*testing.T`, which `*testing.T`, `*testing.B`, and `*testing.F` all satisfy.
-The narrower interface also lets a test double record what the helpers reported, which is how this package tests itself.
-
-## Notes
-
-- A missing element is nil rather than a zero value. `QuerySelector` returns nil when nothing matches, while `QuerySelectorAll` returns a list of length 0.
-- An invalid CSS selector panics, because queries compile with `cascadia.MustCompile`.
-- `TextContent` joins descendant text with no separator and keeps the source whitespace, so an indented row of two cells reads as `"\n\tAda\n\t42\n"`. Wrap it in `strings.TrimSpace`.
-- Document parsing inserts missing `html`, `head`, and `body` elements, the same as `html.Parse`, so `ParseStringDocument(t, "<p>hi</p>")` returns a document whose `Body().InnerHTML()` is `<p>hi</p>`.
-- `spec.Document` leaves out the `ParentNode` child-management methods, so go through `Body()` when you need to walk children.
