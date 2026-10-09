@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/andybalholm/cascadia v1.3.5
 	github.com/stretchr/testify v1.12.1
-	golang.org/x/net v0.60.0
+	golang.org/x/net v0.61.0
 )
 
 require (
